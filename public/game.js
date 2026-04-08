@@ -155,73 +155,96 @@ function addStatic(mesh) {
 }
 
 // ─── TREES (250) ──────────────────────────────────────────────────────────────
-for (let i = 0; i < (isMobileDevice ? 80 : 250); i++) {
-  const p = randPos(5);
-  const ty = heightAt(p.x, p.z);
-  const trunkH = rng(1.8, 4.0);
-  const scale = rng(0.7, 1.4);
-  const trunkMat = new THREE.MeshLambertMaterial({ color: new THREE.Color(rng(0.2, 0.35), rng(0.12, 0.22), rng(0.05, 0.12)) });
-  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.15 * scale, 0.22 * scale, trunkH * scale, 6), trunkMat);
-  trunk.position.set(p.x, ty + (trunkH * scale) / 2, p.z);
-  trunk.castShadow = !isMobileDevice;
-  addStatic(trunk);
-  // 3-layer canopy
-  const canopyColors = [0x0d2b1a, 0x0a2218, 0x112e1e];
-  for (let c = 0; c < 3; c++) {
-    const ch = rng(1.5, 2.8) * scale;
-    const cr = rng(0.9, 1.8) * scale * (1 - c * 0.15);
-    const cone = new THREE.Mesh(
-      new THREE.ConeGeometry(cr, ch, isMobileDevice ? 5 : 7),
-      new THREE.MeshLambertMaterial({ color: canopyColors[c] })
-    );
-    cone.position.set(p.x, ty + trunkH * scale + c * ch * 0.55 + ch / 2 - 0.4, p.z);
-    cone.rotation.y = rng(0, Math.PI);
-    cone.castShadow = !isMobileDevice;
-    addStatic(cone);
+{
+  const treeCount = isMobileDevice ? 60 : 250;
+  const trunkGeo = new THREE.CylinderGeometry(0.18, 0.25, 1, 5);
+  const trunkMat = new THREE.MeshLambertMaterial({ color: 0x3d2010 });
+  const trunkInst = new THREE.InstancedMesh(trunkGeo, trunkMat, treeCount);
+  trunkInst.castShadow = !isMobileDevice;
+  trunkInst.frustumCulled = true;
+  scene.add(trunkInst);
+
+  const canopyGeo = new THREE.ConeGeometry(1, 1, isMobileDevice ? 5 : 7);
+  const canopyMat = new THREE.MeshLambertMaterial({ color: 0x0d2b1a });
+  const canopyInst = new THREE.InstancedMesh(canopyGeo, canopyMat, treeCount * 2);
+  canopyInst.castShadow = !isMobileDevice;
+  canopyInst.frustumCulled = true;
+  scene.add(canopyInst);
+
+  const dummy = new THREE.Object3D();
+  for (let i = 0; i < treeCount; i++) {
+    const p = randPos(5);
+    const ty = heightAt(p.x, p.z);
+    const trunkH = rng(2, 4);
+    const sc = rng(0.7, 1.4);
+
+    // Trunk
+    dummy.position.set(p.x, ty + trunkH * sc / 2, p.z);
+    dummy.scale.set(sc, trunkH * sc, sc);
+    dummy.rotation.set(0, 0, 0);
+    dummy.updateMatrix();
+    trunkInst.setMatrixAt(i, dummy.matrix);
+
+    // Canopy layers (2 per tree for instanced)
+    for (let c = 0; c < 2; c++) {
+      const ch = rng(2, 4) * sc;
+      const cr = rng(1.2, 2.2) * sc * (1 - c * 0.2);
+      dummy.position.set(p.x, ty + trunkH * sc + c * ch * 0.5 + ch / 2 - 0.3, p.z);
+      dummy.scale.set(cr, ch, cr);
+      dummy.rotation.y = rng(0, Math.PI);
+      dummy.updateMatrix();
+      canopyInst.setMatrixAt(i * 2 + c, dummy.matrix);
+    }
   }
+  trunkInst.instanceMatrix.needsUpdate = true;
+  canopyInst.instanceMatrix.needsUpdate = true;
 }
 
 // ─── ROCKS (100) ──────────────────────────────────────────────────────────────
-for (let i = 0; i < (isMobileDevice ? 30 : 100); i++) {
-  const p = randPos(5);
-  const ty = heightAt(p.x, p.z);
-  const s = rng(0.3, 1.6);
-  const geo = new THREE.DodecahedronGeometry(s, 0);
-  // Deform vertices
-  const pos = geo.attributes.position;
-  for (let v = 0; v < pos.count; v++) {
-    pos.setXYZ(v, pos.getX(v) * rng(0.7, 1.3), pos.getY(v) * rng(0.6, 1.2), pos.getZ(v) * rng(0.7, 1.3));
+{
+  const rockCount = isMobileDevice ? 25 : 100;
+  const rockGeo = new THREE.DodecahedronGeometry(1, 0);
+  const rockMat = new THREE.MeshLambertMaterial({ color: 0x4a4a5a });
+  const rockInst = new THREE.InstancedMesh(rockGeo, rockMat, rockCount);
+  rockInst.castShadow = !isMobileDevice;
+  rockInst.frustumCulled = true;
+  scene.add(rockInst);
+
+  const dummy = new THREE.Object3D();
+  for (let i = 0; i < rockCount; i++) {
+    const p = randPos(5);
+    const ty = heightAt(p.x, p.z);
+    const s = rng(0.3, 1.4);
+    dummy.position.set(p.x, ty + s * 0.4, p.z);
+    dummy.scale.set(s * rng(0.8, 1.2), s * rng(0.6, 1.0), s * rng(0.8, 1.2));
+    dummy.rotation.set(rng(0, Math.PI), rng(0, Math.PI), rng(0, Math.PI));
+    dummy.updateMatrix();
+    rockInst.setMatrixAt(i, dummy.matrix);
   }
-  geo.computeVertexNormals();
-  const rock = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({
-    color: new THREE.Color(rng(0.18, 0.32), rng(0.16, 0.28), rng(0.20, 0.34))
-  }));
-  rock.position.set(p.x, ty + s * 0.45, p.z);
-  rock.rotation.set(rng(0, Math.PI), rng(0, Math.PI), rng(0, Math.PI));
-  rock.castShadow = !isMobileDevice; rock.receiveShadow = !isMobileDevice;
-  addStatic(rock);
+  rockInst.instanceMatrix.needsUpdate = true;
 }
 
 // ─── STONE PILLARS (30) ───────────────────────────────────────────────────────
-for (let i = 0; i < (isMobileDevice ? 8 : 30); i++) {
-  const p = randPos(10);
-  const ty = heightAt(p.x, p.z);
-  const h = rng(4, 10);
-  const mossyColor = new THREE.Color(rng(0.22, 0.32), rng(0.28, 0.38), rng(0.22, 0.30));
-  const pillar = new THREE.Mesh(
-    new THREE.CylinderGeometry(rng(0.4, 0.7), rng(0.45, 0.75), h, 8),
-    new THREE.MeshLambertMaterial({ color: mossyColor })
-  );
-  pillar.position.set(p.x, ty + h / 2, p.z);
-  pillar.castShadow = !isMobileDevice; pillar.receiveShadow = !isMobileDevice;
-  addStatic(pillar);
-  const cap = new THREE.Mesh(
-    new THREE.BoxGeometry(rng(1.2, 1.8), 0.4, rng(1.2, 1.8)),
-    new THREE.MeshLambertMaterial({ color: 0x2a2a2a })
-  );
-  cap.position.set(p.x, ty + h + 0.2, p.z);
-  cap.castShadow = !isMobileDevice;
-  addStatic(cap);
+{
+  const pillarCount = isMobileDevice ? 6 : 30;
+  const pillarGeo = new THREE.CylinderGeometry(0.55, 0.65, 1, 7);
+  const pillarMat = new THREE.MeshLambertMaterial({ color: 0x2d3a2d });
+  const pillarInst = new THREE.InstancedMesh(pillarGeo, pillarMat, pillarCount);
+  pillarInst.castShadow = !isMobileDevice;
+  pillarInst.frustumCulled = true;
+  scene.add(pillarInst);
+  const dummy = new THREE.Object3D();
+  for (let i = 0; i < pillarCount; i++) {
+    const p = randPos(10);
+    const ty = heightAt(p.x, p.z);
+    const h = rng(4, 10);
+    dummy.position.set(p.x, ty + h / 2, p.z);
+    dummy.scale.set(1, h, 1);
+    dummy.rotation.set(0, 0, 0);
+    dummy.updateMatrix();
+    pillarInst.setMatrixAt(i, dummy.matrix);
+  }
+  pillarInst.instanceMatrix.needsUpdate = true;
 }
 
 // ─── TORCHES (40) ─────────────────────────────────────────────────────────────
