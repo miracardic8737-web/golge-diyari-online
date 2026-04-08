@@ -3,211 +3,135 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Gölge Diyarı Online</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<!-- GİRİŞ EKRANI -->
+<!-- LOGIN SCREEN -->
 <div id="loginScreen">
-  <div id="loginBg"></div>
-  <div id="loginBox">
-    <div id="loginLogo">
-      <div id="logoTitle">GÖLGE DİYARI</div>
-      <div id="logoSub">ÇEVRİMİÇİ</div>
-      <div id="logoDivider"></div>
-    </div>
-    <p class="loginFlavour">"Karanlık, cesur olanlara seslenir."</p>
-
-    <div class="inputGroup">
-      <label class="inputLabel">KARAKTER ADINIZ</label>
-      <input type="text" id="playerName" placeholder="Adınızı girin..." maxlength="16" autocomplete="off">
-    </div>
-
-    <div class="inputGroup">
-      <label class="inputLabel">SINIF SEÇİN</label>
-      <div id="classSelect">
-        <div class="classCard selected" data-class="warrior">
-          <div class="classIcon warrior-icon">⚔</div>
-          <b>Savaşçı</b>
-          <small>Yüksek HP ve savunma. Yakın dövüş ustası.</small>
-          <div class="classStats">
-            <span class="stat-bar-label">GÜÇ</span><div class="stat-bar"><div class="stat-fill" style="width:90%;background:#ef4444"></div></div>
-            <span class="stat-bar-label">ZEK</span><div class="stat-bar"><div class="stat-fill" style="width:30%;background:#3b82f6"></div></div>
-            <span class="stat-bar-label">ÇEV</span><div class="stat-bar"><div class="stat-fill" style="width:50%;background:#10b981"></div></div>
-          </div>
-        </div>
-        <div class="classCard" data-class="mage">
-          <div class="classIcon mage-icon">✦</div>
-          <b>Büyücü</b>
-          <small>Yıkıcı büyü hasarı. Yakın dövüşte zayıf.</small>
-          <div class="classStats">
-            <span class="stat-bar-label">GÜÇ</span><div class="stat-bar"><div class="stat-fill" style="width:25%;background:#ef4444"></div></div>
-            <span class="stat-bar-label">ZEK</span><div class="stat-bar"><div class="stat-fill" style="width:95%;background:#3b82f6"></div></div>
-            <span class="stat-bar-label">ÇEV</span><div class="stat-bar"><div class="stat-fill" style="width:40%;background:#10b981"></div></div>
-          </div>
-        </div>
-        <div class="classCard" data-class="archer">
-          <div class="classIcon archer-icon">🏹</div>
-          <b>Okçu</b>
-          <small>Uzaktan hızlı ve ölümcül. Dengeli özellikler.</small>
-          <div class="classStats">
-            <span class="stat-bar-label">GÜÇ</span><div class="stat-bar"><div class="stat-fill" style="width:55%;background:#ef4444"></div></div>
-            <span class="stat-bar-label">ZEK</span><div class="stat-bar"><div class="stat-fill" style="width:45%;background:#3b82f6"></div></div>
-            <span class="stat-bar-label">ÇEV</span><div class="stat-bar"><div class="stat-fill" style="width:85%;background:#10b981"></div></div>
-          </div>
-        </div>
-        <div class="classCard" data-class="assassin">
-          <div class="classIcon assassin-icon">🗡</div>
-          <b>Suikastçı</b>
-          <small>Çift hançer, gizlilik. Aşırı ani hasar.</small>
-          <div class="classStats">
-            <span class="stat-bar-label">GÜÇ</span><div class="stat-bar"><div class="stat-fill" style="width:70%;background:#ef4444"></div></div>
-            <span class="stat-bar-label">ZEK</span><div class="stat-bar"><div class="stat-fill" style="width:35%;background:#3b82f6"></div></div>
-            <span class="stat-bar-label">ÇEV</span><div class="stat-bar"><div class="stat-fill" style="width:95%;background:#10b981"></div></div>
-          </div>
-        </div>
+  <div class="login-box">
+    <h1 class="game-title">⚔️ Gölge Diyarı</h1>
+    <p class="game-subtitle">Çok Oyunculu RPG</p>
+    <input id="playerName" type="text" placeholder="Karakter adın..." maxlength="20" autocomplete="off">
+    <p class="class-label">Sınıf Seç:</p>
+    <div class="class-cards">
+      <div class="class-card selected" data-class="warrior">
+        <div class="class-icon">🗡️</div>
+        <div class="class-name">Savaşçı</div>
+        <div class="class-desc">Güçlü, dayanıklı</div>
+      </div>
+      <div class="class-card" data-class="mage">
+        <div class="class-icon">🔮</div>
+        <div class="class-name">Büyücü</div>
+        <div class="class-desc">Yüksek hasar</div>
+      </div>
+      <div class="class-card" data-class="archer">
+        <div class="class-icon">🏹</div>
+        <div class="class-name">Okçu</div>
+        <div class="class-desc">Hızlı, uzak mesafe</div>
+      </div>
+      <div class="class-card" data-class="rogue">
+        <div class="class-icon">🗡️</div>
+        <div class="class-name">Suikastçı</div>
+        <div class="class-desc">Kritik vuruş</div>
       </div>
     </div>
-
-    <button id="startBtn">
-      <span id="startBtnText">DİYARA GİR</span>
-    </button>
-    <p class="loginFooter">Gölge Diyarı Online &copy; 2024 &nbsp;·&nbsp; Karanlık Fantezi MMORPG</p>
+    <button id="startBtn">Oyuna Gir</button>
   </div>
 </div>
 
-<!-- OYUN EKRANI -->
-<div id="gameScreen" style="display:none">
+<!-- LOADING OVERLAY -->
+<div id="loadingOverlay">
+  <div class="loading-content">
+    <div class="loading-spinner"></div>
+    <p>Dünya yükleniyor...</p>
+  </div>
+</div>
 
-  <div id="threeContainer"></div>
+<!-- GAME SCREEN -->
+<div id="gameScreen" style="display:none;">
+  <div id="gameContainer"></div>
 
-  <!-- HUD: Sol Üst -->
+  <!-- HUD -->
   <div id="hud">
-    <div id="charPanel">
-      <div id="charAvatar" class="warrior-avatar"></div>
-      <div id="charStats">
-        <div id="charNameRow">
-          <span id="charName">Kahraman</span>
-          <span id="charLevel">Sv.1</span>
-        </div>
-        <div class="statBar">
-          <div class="statLabel">CAN</div>
-          <div class="statBg"><div id="hpBar" class="statFill hp" style="width:100%"></div></div>
-          <span id="hpVal">200/200</span>
-        </div>
-        <div class="statBar">
-          <div class="statLabel">MP</div>
-          <div class="statBg"><div id="mpBar" class="statFill mp" style="width:100%"></div></div>
-          <span id="mpVal">100/100</span>
-        </div>
-        <div class="statBar">
-          <div class="statLabel">DEN</div>
-          <div class="statBg"><div id="expBar" class="statFill exp" style="width:0%"></div></div>
-          <span id="expVal">0/100</span>
-        </div>
-      </div>
+    <div id="charInfo">
+      <span id="charName">Kahraman</span>
+      <span id="charLevel">Sv.1</span>
+    </div>
+    <div class="bar-row">
+      <span class="bar-label">HP</span>
+      <div class="bar-bg"><div id="hpBar" class="bar hp-bar"></div></div>
+      <span id="hpVal" class="bar-val">200/200</span>
+    </div>
+    <div class="bar-row">
+      <span class="bar-label">MP</span>
+      <div class="bar-bg"><div id="mpBar" class="bar mp-bar"></div></div>
+      <span id="mpVal" class="bar-val">100/100</span>
+    </div>
+    <div class="bar-row">
+      <span class="bar-label">EXP</span>
+      <div class="bar-bg"><div id="expBar" class="bar exp-bar"></div></div>
+      <span id="expVal" class="bar-val">0/100</span>
     </div>
   </div>
 
-  <!-- Miniharita: Sağ Üst -->
+  <!-- MINIMAP -->
   <div id="minimapWrap">
-    <div id="minimapTitle">HARİTA</div>
     <canvas id="minimap" width="130" height="130"></canvas>
   </div>
 
-  <!-- Skill Çubuğu: Alt Orta (masaüstü) -->
+  <!-- KEYBOARD CONTROLS HINT -->
+  <div id="controls">
+    <span>WASD / Oklar: Hareket</span>
+    <span>Space / F: Saldırı</span>
+    <span>Enter: Sohbet</span>
+  </div>
+
+  <!-- SKILL BAR (desktop) -->
   <div id="skillBar">
-    <div class="skill" id="sk0" title="Saldırı [Z]">
-      <div class="skillIcon sk0-icon"></div>
-      <span class="skillKey">Z</span>
-      <div class="skillCd" id="cd0"></div>
-    </div>
-    <div class="skill" id="sk1" title="Güçlü Vuruş [X]">
-      <div class="skillIcon sk1-icon"></div>
-      <span class="skillKey">X</span>
-      <div class="skillCd" id="cd1"></div>
-    </div>
-    <div class="skill" id="sk2" title="Kasırga [C]">
-      <div class="skillIcon sk2-icon"></div>
-      <span class="skillKey">C</span>
-      <div class="skillCd" id="cd2"></div>
-    </div>
-    <div class="skill" id="sk3" title="Gölge Adımı [V]">
-      <div class="skillIcon sk3-icon"></div>
-      <span class="skillKey">V</span>
-      <div class="skillCd" id="cd3"></div>
-    </div>
+    <div class="skill-btn" id="skill1">Q</div>
+    <div class="skill-btn" id="skill2">E</div>
+    <div class="skill-btn" id="skill3">R</div>
   </div>
 
-  <!-- Kontrol ipucu (sadece masaüstü) -->
-  <div id="controls">WASD / Ok Tuşları: Hareket &nbsp;·&nbsp; Z X C V: Beceriler &nbsp;·&nbsp; Enter: Sohbet &nbsp;·&nbsp; Tık: Saldırı</div>
-
-  <!-- Sohbet: Sol Alt -->
+  <!-- CHAT -->
   <div id="chatBox">
-    <div id="chatLog"></div>
-    <div id="chatInputRow" style="display:none">
-      <input id="chatInput" type="text" placeholder="Mesaj yaz..." maxlength="80">
-      <button id="chatSendBtn">↵</button>
+    <div id="chatMessages"></div>
+    <div id="chatInputRow" style="display:none;">
+      <input id="chatInput" type="text" placeholder="Mesaj yaz..." maxlength="80" autocomplete="off">
+      <button id="chatSend">Gönder</button>
     </div>
   </div>
 
-  <!-- Bildirimler -->
-  <div id="notifArea"></div>
-
-  <!-- MOBİL KONTROLLER -->
-  <div id="mobileControls">
-    <!-- Sol: Hareket joystick -->
-    <div id="joystickBase">
-      <div id="joystickRing"></div>
-      <div id="joystickThumb"></div>
-    </div>
-    <!-- Sağ: Saldırı + beceriler -->
-    <div id="mobileRight">
-      <div class="mobileSkillBtn" id="mSkill2" data-skill="2">
-        <div class="mSkillIcon sk2-icon"></div>
-        <span>C</span>
-      </div>
-      <div class="mobileSkillBtn" id="mSkill1" data-skill="1">
-        <div class="mSkillIcon sk1-icon"></div>
-        <span>X</span>
-      </div>
-      <div class="mobileSkillBtn" id="mSkill3" data-skill="3">
-        <div class="mSkillIcon sk3-icon"></div>
-        <span>V</span>
-      </div>
-      <div id="mobileAttackBtn" data-skill="0">⚔</div>
-    </div>
-    <!-- Sohbet butonu (mobil) -->
-    <div id="mobileChatBtn">💬</div>
+  <!-- MOBILE JOYSTICK -->
+  <div id="joystickBase">
+    <div id="joystickThumb"></div>
   </div>
 
-  <!-- Yükleme Ekranı -->
-  <div id="loadingOverlay">
-    <div id="loadingContent">
-      <div id="loadingTitle">GÖLGE DİYARI</div>
-      <div id="loadingSubtitle">ÇEVRİMİÇİ</div>
-      <div id="loadingBarWrap">
-        <div id="loadingBar"><div id="loadingFill"></div></div>
-        <div id="loadingPct">0%</div>
-      </div>
-      <div id="loadingText">Diyar hazırlanıyor...</div>
+  <!-- MOBILE ATTACK BUTTON -->
+  <button id="mobileAttackBtn">⚔️</button>
+
+  <!-- MOBILE SKILLS WRAP -->
+  <div id="mobileSkillsWrap">
+    <button class="mob-skill" id="mobSkill1">Q</button>
+    <button class="mob-skill" id="mobSkill2">E</button>
+    <button class="mob-skill" id="mobSkill3">R</button>
+  </div>
+
+  <!-- DEATH SCREEN -->
+  <div id="deathScreen" style="display:none;">
+    <div class="death-content">
+      <h2>💀 Öldün!</h2>
+      <p>5 saniye içinde yeniden doğuyorsun...</p>
+      <div id="respawnTimer">5</div>
     </div>
   </div>
 
-</div>
-
-<!-- Ekran flaşı -->
-<div id="screenFlash"></div>
-
-<!-- Ölüm ekranı -->
-<div id="deathScreen" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:80;flex-direction:column;align-items:center;justify-content:center;">
-  <div style="font-size:4rem;">☠</div>
-  <div style="font-size:1.5rem;font-weight:900;color:#ef4444;letter-spacing:4px;margin:12px 0;">ÖLDÜNÜZ</div>
-  <div style="font-size:0.9rem;color:#9ca3af;">5 saniye sonra yeniden doğuyorsunuz...</div>
+  <!-- LEVEL UP POPUP -->
+  <div id="levelUpPopup" style="display:none;">
+    <span>⬆️ SEVİYE ATLADI!</span>
+  </div>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
