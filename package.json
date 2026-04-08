@@ -1,0 +1,16 @@
+{
+  "name": "golge-diyari-online",
+  "version": "1.0.0",
+  "description": "Gölge Diyarı Online - Dark Fantasy MMORPG",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.6.1"
+  }
+}
