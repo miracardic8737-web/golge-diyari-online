@@ -82,19 +82,21 @@ scene.add(ambient);
 const hemi = new THREE.HemisphereLight(0x334466, 0x1a1a0a, 0.8);
 scene.add(hemi);
 
-// Atmosphere point lights
-const atmLights = [
-  { color: 0x2244aa, pos: [-80, 8, -60], intensity: 1.2, range: 60 },
-  { color: 0x6622aa, pos: [70, 6, 80],   intensity: 1.0, range: 55 },
-  { color: 0xaa4400, pos: [-60, 5, 90],  intensity: 0.9, range: 50 },
-  { color: 0x224488, pos: [90, 7, -70],  intensity: 1.1, range: 58 },
-  { color: 0x441166, pos: [0, 6, -100],  intensity: 0.8, range: 45 },
-];
-atmLights.forEach(({ color, pos, intensity, range }) => {
-  const l = new THREE.PointLight(color, intensity, range);
-  l.position.set(...pos);
-  scene.add(l);
-});
+// Atmosphere point lights — mobilde kapat (büyük performans kazancı)
+if (!isMobileDevice) {
+  const atmLights = [
+    { color: 0x2244aa, pos: [-80, 8, -60], intensity: 1.2, range: 60 },
+    { color: 0x6622aa, pos: [70, 6, 80],   intensity: 1.0, range: 55 },
+    { color: 0xaa4400, pos: [-60, 5, 90],  intensity: 0.9, range: 50 },
+    { color: 0x224488, pos: [90, 7, -70],  intensity: 1.1, range: 58 },
+    { color: 0x441166, pos: [0, 6, -100],  intensity: 0.8, range: 45 },
+  ];
+  atmLights.forEach(({ color, pos, intensity, range }) => {
+    const l = new THREE.PointLight(color, intensity, range);
+    l.position.set(...pos);
+    scene.add(l);
+  });
+}
 
 // ─── TERRAIN ──────────────────────────────────────────────────────────────────
 function heightAt(x, z) {
@@ -106,7 +108,7 @@ function heightAt(x, z) {
 }
 
 function buildTerrain() {
-  const W = 320, segs = 100;
+  const W = 320, segs = isMobileDevice ? 30 : 100;
   const geo = new THREE.PlaneGeometry(W, W, segs, segs);
   geo.rotateX(-Math.PI / 2);
   const pos = geo.attributes.position;
@@ -143,6 +145,15 @@ function randPos(margin = 20) {
   return { x: rng(-160 + margin, 160 - margin), z: rng(-160 + margin, 160 - margin) };
 }
 
+// Statik nesne ekle: matrixAutoUpdate kapat, frustumCulled aç
+function addStatic(mesh) {
+  mesh.matrixAutoUpdate = false;
+  mesh.updateMatrix();
+  mesh.frustumCulled = true;
+  scene.add(mesh);
+  return mesh;
+}
+
 // ─── TREES (250) ──────────────────────────────────────────────────────────────
 for (let i = 0; i < (isMobileDevice ? 80 : 250); i++) {
   const p = randPos(5);
@@ -152,21 +163,21 @@ for (let i = 0; i < (isMobileDevice ? 80 : 250); i++) {
   const trunkMat = new THREE.MeshLambertMaterial({ color: new THREE.Color(rng(0.2, 0.35), rng(0.12, 0.22), rng(0.05, 0.12)) });
   const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.15 * scale, 0.22 * scale, trunkH * scale, 6), trunkMat);
   trunk.position.set(p.x, ty + (trunkH * scale) / 2, p.z);
-  trunk.castShadow = true;
-  scene.add(trunk);
+  trunk.castShadow = !isMobileDevice;
+  addStatic(trunk);
   // 3-layer canopy
   const canopyColors = [0x0d2b1a, 0x0a2218, 0x112e1e];
   for (let c = 0; c < 3; c++) {
     const ch = rng(1.5, 2.8) * scale;
     const cr = rng(0.9, 1.8) * scale * (1 - c * 0.15);
     const cone = new THREE.Mesh(
-      new THREE.ConeGeometry(cr, ch, 7),
+      new THREE.ConeGeometry(cr, ch, isMobileDevice ? 5 : 7),
       new THREE.MeshLambertMaterial({ color: canopyColors[c] })
     );
     cone.position.set(p.x, ty + trunkH * scale + c * ch * 0.55 + ch / 2 - 0.4, p.z);
     cone.rotation.y = rng(0, Math.PI);
-    cone.castShadow = true;
-    scene.add(cone);
+    cone.castShadow = !isMobileDevice;
+    addStatic(cone);
   }
 }
 
@@ -187,8 +198,8 @@ for (let i = 0; i < (isMobileDevice ? 30 : 100); i++) {
   }));
   rock.position.set(p.x, ty + s * 0.45, p.z);
   rock.rotation.set(rng(0, Math.PI), rng(0, Math.PI), rng(0, Math.PI));
-  rock.castShadow = true; rock.receiveShadow = true;
-  scene.add(rock);
+  rock.castShadow = !isMobileDevice; rock.receiveShadow = !isMobileDevice;
+  addStatic(rock);
 }
 
 // ─── STONE PILLARS (30) ───────────────────────────────────────────────────────
@@ -202,15 +213,15 @@ for (let i = 0; i < (isMobileDevice ? 8 : 30); i++) {
     new THREE.MeshLambertMaterial({ color: mossyColor })
   );
   pillar.position.set(p.x, ty + h / 2, p.z);
-  pillar.castShadow = true; pillar.receiveShadow = true;
-  scene.add(pillar);
+  pillar.castShadow = !isMobileDevice; pillar.receiveShadow = !isMobileDevice;
+  addStatic(pillar);
   const cap = new THREE.Mesh(
     new THREE.BoxGeometry(rng(1.2, 1.8), 0.4, rng(1.2, 1.8)),
     new THREE.MeshLambertMaterial({ color: 0x2a2a2a })
   );
   cap.position.set(p.x, ty + h + 0.2, p.z);
-  cap.castShadow = true;
-  scene.add(cap);
+  cap.castShadow = !isMobileDevice;
+  addStatic(cap);
 }
 
 // ─── TORCHES (40) ─────────────────────────────────────────────────────────────
@@ -223,18 +234,23 @@ for (let i = 0; i < (isMobileDevice ? 15 : 40); i++) {
     new THREE.MeshLambertMaterial({ color: 0x3d2010 })
   );
   stick.position.set(p.x, ty + 1.0, p.z);
-  stick.castShadow = true;
-  scene.add(stick);
+  stick.castShadow = !isMobileDevice;
+  addStatic(stick);
   const flame = new THREE.Mesh(
     new THREE.ConeGeometry(0.16, 0.42, 6),
     new THREE.MeshBasicMaterial({ color: 0xff8800 })
   );
   flame.position.set(p.x, ty + 2.15, p.z);
-  scene.add(flame);
-  const light = new THREE.PointLight(0xff6600, 2.0, 15);
-  light.position.set(p.x, ty + 2.3, p.z);
-  scene.add(light);
-  torchObjects.push({ flame, light, baseY: ty + 2.15, baseIntensity: 2.0 });
+  scene.add(flame); // flame animasyonlu, static değil
+  // Mobilde torch ışığı kapat
+  if (!isMobileDevice) {
+    const light = new THREE.PointLight(0xff6600, 2.0, 15);
+    light.position.set(p.x, ty + 2.3, p.z);
+    scene.add(light);
+    torchObjects.push({ flame, light, baseY: ty + 2.15, baseIntensity: 2.0 });
+  } else {
+    torchObjects.push({ flame, light: null, baseY: ty + 2.15, baseIntensity: 2.0 });
+  }
 }
 
 // ─── MAGICAL CRYSTALS (20) ────────────────────────────────────────────────────
@@ -252,12 +268,17 @@ for (let i = 0; i < (isMobileDevice ? 6 : 20); i++) {
   crystal.scale.set(rng(0.5, 1.0), h, rng(0.5, 1.0));
   crystal.position.set(p.x, ty + h * 0.5, p.z);
   crystal.rotation.y = rng(0, Math.PI);
-  crystal.castShadow = true;
-  scene.add(crystal);
-  const cLight = new THREE.PointLight(col, 1.5, 12);
-  cLight.position.set(p.x, ty + h * 0.5, p.z);
-  scene.add(cLight);
-  crystalObjects.push({ crystal, light: cLight, baseEmissive: 0.6 });
+  crystal.castShadow = !isMobileDevice;
+  addStatic(crystal);
+  // Mobilde kristal ışığı kapat
+  if (!isMobileDevice) {
+    const cLight = new THREE.PointLight(col, 1.5, 12);
+    cLight.position.set(p.x, ty + h * 0.5, p.z);
+    scene.add(cLight);
+    crystalObjects.push({ crystal, light: cLight, baseEmissive: 0.6 });
+  } else {
+    crystalObjects.push({ crystal, light: null, baseEmissive: 0.6 });
+  }
 }
 
 // ─── GRASS PATCHES ────────────────────────────────────────────────────────────
@@ -1272,9 +1293,17 @@ function regenMP(delta) {
 
 // ─── ANIMATION LOOP ───────────────────────────────────────────────────────────
 const clock = new THREE.Clock();
+// Mobilde 30fps cap, masaüstünde sınırsız
+const TARGET_FPS = isMobileDevice ? 30 : 60;
+const FRAME_TIME = 1000 / TARGET_FPS;
+let lastFrameTime = 0;
 
-function animate() {
+function animate(now = 0) {
   requestAnimationFrame(animate);
+  // FPS throttle
+  if (now - lastFrameTime < FRAME_TIME) return;
+  lastFrameTime = now;
+
   const delta = Math.min(clock.getDelta(), 0.1);
   const elapsed = clock.getElapsedTime();
 
@@ -1282,21 +1311,20 @@ function animate() {
   updateCamera();
   regenMP(delta);
 
-  // Torch flicker
+  // Torch flicker — mobilde sadece renk değiştir, ışık yok
   for (const t of torchObjects) {
     const flicker = Math.sin(elapsed * 12 + t.baseY) * 0.5 + Math.sin(elapsed * 7.3 + t.baseY * 2) * 0.3;
     t.flame.position.y = t.baseY + flicker * 0.08;
     t.flame.scale.set(1 + flicker * 0.15, 1 + flicker * 0.2, 1 + flicker * 0.15);
-    t.light.intensity = t.baseIntensity + flicker * 0.6;
-    const r = 1.0, g = 0.4 + flicker * 0.1, b = 0.0;
-    t.flame.material.color.setRGB(r, g, b);
+    if (t.light) t.light.intensity = t.baseIntensity + flicker * 0.6;
+    t.flame.material.color.setRGB(1.0, 0.4 + flicker * 0.1, 0.0);
   }
 
-  // Crystal pulse
+  // Crystal pulse — mobilde ışık yok
   for (const c of crystalObjects) {
     const pulse = Math.sin(elapsed * 2.5 + c.crystal.position.x) * 0.5 + 0.5;
     c.crystal.material.emissiveIntensity = c.baseEmissive + pulse * 0.4;
-    c.light.intensity = 1.0 + pulse * 1.0;
+    if (c.light) c.light.intensity = 1.0 + pulse * 1.0;
     c.crystal.rotation.y += delta * 0.5;
   }
 
