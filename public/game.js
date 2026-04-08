@@ -441,18 +441,39 @@ joystickBase.addEventListener('touchend',    resetJoystick, { passive: false });
 joystickBase.addEventListener('touchcancel', resetJoystick, { passive: false });
 
 // ─── MOBILE ATTACK ────────────────────────────────────────────────────────────
-document.getElementById('mobileAttackBtn').addEventListener('touchstart', e => {
+const mobileAttackBtn = document.getElementById('mobileAttackBtn');
+mobileAttackBtn.addEventListener('touchstart', e => {
   e.preventDefault();
+  e.stopPropagation();
   doAttack();
 }, { passive: false });
+// Fallback for click too
+mobileAttackBtn.addEventListener('click', e => {
+  e.preventDefault();
+  doAttack();
+});
+
+// Mobile skill buttons
+document.querySelectorAll('.mob-skill').forEach((btn, i) => {
+  btn.addEventListener('touchstart', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    doAttack(); // all skills trigger attack for now
+  }, { passive: false });
+  btn.addEventListener('click', e => { e.preventDefault(); doAttack(); });
+});
 
 // ─── ATTACK ───────────────────────────────────────────────────────────────────
 let lastAttackTime = 0;
 function doAttack() {
+  if (!myPlayer || !gameRunning) return;
   const now = Date.now();
-  if (now - lastAttackTime < 600) return;
+  if (now - lastAttackTime < 500) return;
   lastAttackTime = now;
   socket.emit('attack', {});
+  // Visual feedback - flash attack button
+  mobileAttackBtn.style.transform = 'scale(0.85)';
+  setTimeout(() => { mobileAttackBtn.style.transform = ''; }, 150);
 }
 
 // ─── CHAT ─────────────────────────────────────────────────────────────────────

@@ -342,83 +342,95 @@ body {
 /* ─── MOBILE JOYSTICK ─── */
 #joystickBase {
   position: fixed;
-  bottom: 30px;
-  left: 30px;
-  width: 120px;
-  height: 120px;
+  bottom: 24px;
+  left: 24px;
+  width: 130px;
+  height: 130px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.07);
-  border: 2px solid rgba(255,255,255,0.25);
+  background: rgba(255,255,255,0.08);
+  border: 3px solid rgba(255,255,255,0.3);
   display: none;
   align-items: center;
   justify-content: center;
   touch-action: none;
   z-index: 20;
+  box-shadow: 0 0 20px rgba(0,0,0,0.5);
 }
 
 #joystickThumb {
   position: absolute;
-  width: 44px;
-  height: 44px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
-  background: rgba(168, 85, 247, 0.7);
-  border: 2px solid #a855f7;
-  left: 38px;
-  top: 38px;
+  background: radial-gradient(circle at 35% 35%, #c084fc, #7c3aed);
+  border: 3px solid #a855f7;
+  left: 40px;
+  top: 40px;
   pointer-events: none;
-  transition: left 0.05s, top 0.05s;
+  box-shadow: 0 0 12px rgba(168,85,247,0.6);
 }
 
 /* ─── MOBILE ATTACK BUTTON ─── */
 #mobileAttackBtn {
   position: fixed;
-  bottom: 30px;
-  right: 30px;
-  width: 80px;
-  height: 80px;
+  bottom: 24px;
+  right: 24px;
+  width: 90px;
+  height: 90px;
   border-radius: 50%;
-  background: rgba(239, 68, 68, 0.8);
-  border: 2px solid #ef4444;
+  background: radial-gradient(circle at 35% 35%, #f87171, #dc2626);
+  border: 3px solid #ef4444;
   display: none;
   align-items: center;
   justify-content: center;
-  font-size: 1.6rem;
+  font-size: 2rem;
   touch-action: none;
   z-index: 20;
   cursor: pointer;
   color: white;
+  box-shadow: 0 0 24px rgba(239,68,68,0.7), 0 4px 12px rgba(0,0,0,0.5);
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
 #mobileAttackBtn:active {
-  background: rgba(239, 68, 68, 1);
-  transform: scale(0.93);
+  transform: scale(0.88);
+  box-shadow: 0 0 32px rgba(239,68,68,1);
 }
 
 /* ─── MOBILE SKILLS ─── */
 #mobileSkillsWrap {
   position: fixed;
-  bottom: 120px;
+  bottom: 130px;
   right: 20px;
   display: none;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   z-index: 20;
 }
 
 .mob-skill {
-  width: 52px;
-  height: 52px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
-  background: rgba(124, 58, 237, 0.7);
-  border: 2px solid #7c3aed;
+  background: radial-gradient(circle at 35% 35%, #818cf8, #4f46e5);
+  border: 3px solid #6366f1;
   color: white;
-  font-size: 0.85rem;
-  font-weight: 700;
+  font-size: 1rem;
+  font-weight: 900;
   cursor: pointer;
   touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 0 14px rgba(99,102,241,0.6), 0 4px 8px rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.mob-skill:active { opacity: 0.7; }
+.mob-skill:active {
+  transform: scale(0.88);
+  opacity: 0.85;
+}
 
 /* ─── DEATH SCREEN ─── */
 #deathScreen {

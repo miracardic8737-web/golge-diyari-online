@@ -177,10 +177,10 @@ io.on('connection', (socket) => {
       joined: false,
     };
     socket.emit('joined', { player: players[socket.id], mapW: MAP_W, mapH: MAP_H });
-    // 3 saniye sonra hasar almaya başlar (yükleme ekranı kapanır)
+    // 1 saniye sonra hasar almaya başlar
     setTimeout(() => {
       if (players[socket.id]) players[socket.id].joined = true;
-    }, 3000);
+    }, 1000);
   });
 
   socket.on('move', (data) => {
@@ -205,7 +205,7 @@ io.on('connection', (socket) => {
     for (const mid in monsters) {
       const m = monsters[mid];
       if (!m.alive) continue;
-      if (dist(p, m) < 80) {
+      if (dist(p, m) < 150) {
         const dmg = p.atk + Math.floor(Math.random() * 10);
         m.hp -= dmg;
         hits.push({ id: mid, dmg });
