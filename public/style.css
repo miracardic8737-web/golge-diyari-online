@@ -266,18 +266,29 @@ body {
 }
 
 .skill-btn {
-  width: 52px;
-  height: 52px;
-  background: rgba(20, 0, 40, 0.9);
-  border: 2px solid rgba(107, 33, 168, 0.6);
-  border-radius: 8px;
+  width: 64px;
+  height: 64px;
+  background: rgba(20, 0, 40, 0.92);
+  border: 2px solid rgba(168, 85, 247, 0.7);
+  border-radius: 10px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: #c084fc;
+  font-size: 1.5rem;
   cursor: pointer;
+  box-shadow: 0 0 10px rgba(168,85,247,0.3);
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+.skill-btn span {
+  font-size: 0.55rem;
+  color: #c084fc;
+  margin-top: 2px;
+  letter-spacing: 0.5px;
+}
+.skill-btn:active {
+  transform: scale(0.9);
+  box-shadow: 0 0 20px rgba(168,85,247,0.7);
 }
 
 /* ─── CHAT ─── */
@@ -416,8 +427,7 @@ body {
   background: radial-gradient(circle at 35% 35%, #818cf8, #4f46e5);
   border: 3px solid #6366f1;
   color: white;
-  font-size: 1rem;
-  font-weight: 900;
+  font-size: 1.4rem;
   cursor: pointer;
   touch-action: none;
   -webkit-tap-highlight-color: transparent;
@@ -425,8 +435,15 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-direction: column;
+  line-height: 1;
 }
-
+.mob-skill::after {
+  content: attr(data-label);
+  font-size: 0.45rem;
+  color: rgba(255,255,255,0.7);
+  margin-top: 1px;
+}
 .mob-skill:active {
   transform: scale(0.88);
   opacity: 0.85;

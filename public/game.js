@@ -133,66 +133,142 @@ function drawCharacter(sx, sy, name, hp, maxHp, cls, isMe, attacking) {
   const s = serverToScreen(sx, sy);
   const x = s.x, y = s.y;
   const col = CLASS_COLORS[cls] || '#e74c3c';
+  const t = Date.now() / 1000;
 
-  // Shadow
-  ctx.fillStyle = 'rgba(0,0,0,0.35)';
+  // Walk bob animation
+  const isMoving = isMe && (Math.abs(joystickDx) > 0.1 || Math.abs(joystickDy) > 0.1 ||
+    keys['KeyW'] || keys['KeyS'] || keys['KeyA'] || keys['KeyD'] ||
+    keys['ArrowUp'] || keys['ArrowDown'] || keys['ArrowLeft'] || keys['ArrowRight']);
+  const bob = isMoving ? Math.sin(t * 10) * 2 : 0;
+  const legSwing = isMoving ? Math.sin(t * 10) * 5 : 0;
+
+  // Attack swing
+  const atkSwing = attacking ? Math.sin(t * 20) * 12 : 0;
+
+  // Shadow (squish when bobbing)
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
   ctx.beginPath();
-  ctx.ellipse(x, y + 4, 18, 8, 0, 0, Math.PI * 2);
+  ctx.ellipse(x, y + 4, 18 + Math.abs(bob) * 0.5, 8 - Math.abs(bob) * 0.3, 0, 0, Math.PI * 2);
   ctx.fill();
+
+  // Legs (animated)
+  ctx.fillStyle = cls === 'warrior' ? '#7f1d1d' : cls === 'mage' ? '#4c1d95' : cls === 'archer' ? '#14532d' : '#1f2937';
+  // Left leg
+  ctx.save();
+  ctx.translate(x - 5, y - 2 + bob);
+  ctx.rotate(legSwing * 0.05);
+  ctx.fillRect(-4, 0, 8, 12);
+  ctx.restore();
+  // Right leg
+  ctx.save();
+  ctx.translate(x + 5, y - 2 + bob);
+  ctx.rotate(-legSwing * 0.05);
+  ctx.fillRect(-4, 0, 8, 12);
+  ctx.restore();
 
   // Body
   ctx.fillStyle = col;
   ctx.beginPath();
-  ctx.ellipse(x, y - 10, 12, 16, 0, 0, Math.PI * 2);
+  ctx.ellipse(x, y - 12 + bob, 12, 14, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Armor shine
+  ctx.fillStyle = 'rgba(255,255,255,0.15)';
+  ctx.beginPath();
+  ctx.ellipse(x - 3, y - 16 + bob, 5, 6, -0.3, 0, Math.PI * 2);
   ctx.fill();
 
   // Head
   ctx.fillStyle = '#f5cba7';
   ctx.beginPath();
-  ctx.arc(x, y - 28, 9, 0, Math.PI * 2);
+  ctx.arc(x, y - 30 + bob, 9, 0, Math.PI * 2);
   ctx.fill();
 
-  // Class weapon
+  // Eyes
+  ctx.fillStyle = '#333';
+  ctx.beginPath(); ctx.arc(x - 3, y - 31 + bob, 1.5, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(x + 3, y - 31 + bob, 1.5, 0, Math.PI * 2); ctx.fill();
+
+  // Class weapon with attack animation
   if (cls === 'warrior') {
-    ctx.strokeStyle = attacking ? '#ff6b6b' : '#aaa';
+    const swingX = attacking ? atkSwing : 0;
+    const swingY = attacking ? -Math.abs(atkSwing) * 0.5 : 0;
+    ctx.strokeStyle = attacking ? '#ff6b6b' : '#c0c0c0';
+    ctx.lineWidth = 4;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(x + 10 + swingX, y - 18 + bob + swingY);
+    ctx.lineTo(x + 24 + swingX, y - 40 + bob + swingY);
+    ctx.stroke();
+    // Guard
+    ctx.strokeStyle = '#ffd700';
     ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.moveTo(x + 10, y - 20);
-    ctx.lineTo(x + 22, y - 38);
+    ctx.moveTo(x + 6 + swingX, y - 26 + bob + swingY);
+    ctx.lineTo(x + 18 + swingX, y - 28 + bob + swingY);
     ctx.stroke();
+    // Attack flash
+    if (attacking) {
+      ctx.fillStyle = 'rgba(255,100,100,0.3)';
+      ctx.beginPath();
+      ctx.arc(x + 20 + swingX, y - 38 + bob, 14, 0, Math.PI * 2);
+      ctx.fill();
+    }
   } else if (cls === 'mage') {
     ctx.strokeStyle = attacking ? '#da8fff' : '#9b59b6';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
     ctx.beginPath();
-    ctx.moveTo(x - 10, y - 20);
-    ctx.lineTo(x - 22, y - 40);
+    ctx.moveTo(x - 10, y - 18 + bob);
+    ctx.lineTo(x - 24, y - 42 + bob);
     ctx.stroke();
+    const orbPulse = attacking ? 8 + Math.sin(t * 15) * 3 : 5;
     ctx.fillStyle = attacking ? '#ff88ff' : '#c39bd3';
+    ctx.shadowColor = attacking ? '#ff00ff' : '#9b59b6';
+    ctx.shadowBlur = attacking ? 12 : 6;
     ctx.beginPath();
-    ctx.arc(x - 22, y - 42, 5, 0, Math.PI * 2);
+    ctx.arc(x - 24, y - 44 + bob, orbPulse, 0, Math.PI * 2);
     ctx.fill();
+    ctx.shadowBlur = 0;
+    if (attacking) {
+      ctx.fillStyle = 'rgba(200,0,255,0.2)';
+      ctx.beginPath();
+      ctx.arc(x - 24, y - 44 + bob, 20, 0, Math.PI * 2);
+      ctx.fill();
+    }
   } else if (cls === 'archer') {
     ctx.strokeStyle = '#8B4513';
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(x + 14, y - 24, 10, -0.8, 0.8);
+    ctx.arc(x + 14, y - 24 + bob, 10, -0.8, 0.8);
     ctx.stroke();
     ctx.strokeStyle = '#ddd';
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(x + 14, y - 34);
-    ctx.lineTo(x + 14, y - 14);
+    ctx.moveTo(x + 14, y - 34 + bob);
+    ctx.lineTo(x + 14, y - 14 + bob);
     ctx.stroke();
+    if (attacking) {
+      // Arrow flying
+      ctx.strokeStyle = '#ffd700';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x + 14, y - 24 + bob);
+      ctx.lineTo(x + 14 + atkSwing * 2, y - 24 + bob - Math.abs(atkSwing));
+      ctx.stroke();
+    }
   } else if (cls === 'rogue') {
-    ctx.strokeStyle = attacking ? '#aaa' : '#666';
+    const daggerSwing = attacking ? atkSwing * 0.5 : 0;
+    ctx.strokeStyle = attacking ? '#e0e0e0' : '#888';
     ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
     ctx.beginPath();
-    ctx.moveTo(x + 8, y - 18);
-    ctx.lineTo(x + 18, y - 30);
+    ctx.moveTo(x + 8 + daggerSwing, y - 18 + bob - daggerSwing);
+    ctx.lineTo(x + 20 + daggerSwing, y - 32 + bob - daggerSwing);
     ctx.stroke();
     ctx.beginPath();
-    ctx.moveTo(x + 10, y - 22);
-    ctx.lineTo(x + 20, y - 28);
+    ctx.moveTo(x - 8 - daggerSwing, y - 18 + bob - daggerSwing);
+    ctx.lineTo(x - 20 - daggerSwing, y - 32 + bob - daggerSwing);
     ctx.stroke();
   }
 

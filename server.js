@@ -17,11 +17,11 @@ const MAP_W = 3200;
 const MAP_H = 3200;
 
 const MONSTER_TYPES = [
-  { type: 'goblin',      name: 'Orman Goblini',  hp: 60,  maxHp: 60,  atk: 8,  exp: 20,  size: 30 },
-  { type: 'orc',         name: 'Ork Savaşçısı',  hp: 180, maxHp: 180, atk: 22, exp: 90,  size: 46 },
-  { type: 'skeleton',    name: 'İskelet',         hp: 100, maxHp: 100, atk: 14, exp: 45,  size: 38 },
-  { type: 'dark_mage',   name: 'Karanlık Büyücü', hp: 140, maxHp: 140, atk: 28, exp: 120, size: 42 },
-  { type: 'dragon_boss', name: 'Kadim Ejderha',   hp: 800, maxHp: 800, atk: 55, exp: 500, size: 80 },
+  { type: 'goblin',      name: 'Orman Goblini',  hp: 80,   maxHp: 80,   atk: 4,  exp: 20,  size: 30 },
+  { type: 'orc',         name: 'Ork Savaşçısı',  hp: 250,  maxHp: 250,  atk: 8,  exp: 90,  size: 46 },
+  { type: 'skeleton',    name: 'İskelet',         hp: 150,  maxHp: 150,  atk: 6,  exp: 45,  size: 38 },
+  { type: 'dark_mage',   name: 'Karanlık Büyücü', hp: 200,  maxHp: 200,  atk: 10, exp: 120, size: 42 },
+  { type: 'dragon_boss', name: 'Kadim Ejderha',   hp: 1200, maxHp: 1200, atk: 18, exp: 500, size: 80 },
 ];
 
 function spawnMonster() {
@@ -68,7 +68,7 @@ setInterval(() => {
     // Find nearest player — ama her canavar farklı oyuncuyu tercih etsin
     // Önce mevcut hedefini kontrol et, yakınsa devam et
     let nearest = null, nearestDist = 300;
-    const playerList = Object.values(players).filter(p => p.joined);
+    const playerList = Object.values(players).filter(p => p.joined && !p.dead);
 
     // Mevcut hedef hâlâ yakınsa ona devam et (hedef değiştirme sıklığını azalt)
     if (m.target && players[m.target] && players[m.target].joined) {
@@ -101,29 +101,32 @@ setInterval(() => {
       const dx = nearest.x - m.x;
       const dy = nearest.y - m.y;
       const d = Math.hypot(dx, dy);
-      if (d > 40) {
-        const speed = 1.2;
+      if (d > 50) {
+        const speed = 0.9; // daha yavaş
         m.x += (dx / d) * speed * (TICK / 16);
         m.y += (dy / d) * speed * (TICK / 16);
       } else {
-        // Attack
-        if (now - m.lastAttack > 1500) {
+        // Attack — 2.5 saniyede bir
+        if (now - m.lastAttack > 2500) {
           m.lastAttack = now;
-          const dmg = m.atk + Math.floor(Math.random() * 5);
+          const dmg = m.atk + Math.floor(Math.random() * 3);
           nearest.hp -= dmg;
           if (nearest.hp < 0) nearest.hp = 0;
-          // Sadece oyuncu tam olarak join ettiyse hasar gönder
-          if (nearest.joined) {
+          // Sadece oyuncu join ettiyse ve ölü değilse hasar gönder
+          if (nearest.joined && !nearest.dead) {
             io.to(nearest.id).emit('damaged', { dmg, hp: nearest.hp });
             // Ölüm kontrolü
-            if (nearest.hp <= 0) {
+            if (nearest.hp <= 0 && !nearest.dead) {
+              nearest.dead = true;
               io.to(nearest.id).emit('died');
-              // 5 saniye sonra respawn
+              // 5 saniye sonra respawn — güvenli bölgede
               setTimeout(() => {
                 if (players[nearest.id]) {
                   players[nearest.id].hp = players[nearest.id].maxHp;
-                  players[nearest.id].x = 400 + Math.random() * 400;
-                  players[nearest.id].y = 400 + Math.random() * 400;
+                  players[nearest.id].dead = false;
+                  // Başlangıç bölgesine respawn
+                  players[nearest.id].x = 1400 + Math.random() * 400;
+                  players[nearest.id].y = 1400 + Math.random() * 400;
                   io.to(nearest.id).emit('respawned', {
                     hp: players[nearest.id].hp,
                     x: players[nearest.id].x,
