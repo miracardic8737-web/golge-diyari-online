@@ -203,6 +203,13 @@
 <!-- Ekran flaşı -->
 <div id="screenFlash"></div>
 
+<!-- Ölüm ekranı -->
+<div id="deathScreen" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:80;flex-direction:column;align-items:center;justify-content:center;">
+  <div style="font-size:4rem;">☠</div>
+  <div style="font-size:1.5rem;font-weight:900;color:#ef4444;letter-spacing:4px;margin:12px 0;">ÖLDÜNÜZ</div>
+  <div style="font-size:0.9rem;color:#9ca3af;">5 saniye sonra yeniden doğuyorsunuz...</div>
+</div>
+
 <script src="/socket.io/socket.io.js"></script>
 <script src="game.js"></script>
 </body>

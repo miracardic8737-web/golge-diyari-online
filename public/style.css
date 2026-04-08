@@ -330,6 +330,8 @@ html, body {
   background:radial-gradient(circle at 40% 35%, rgba(255,255,255,0.4), rgba(255,255,255,0.15));
   border:2px solid rgba(255,255,255,0.5);
   position:absolute;
+  left:50%; top:50%;
+  transform:translate(-50%,-50%);
   pointer-events:none;
   box-shadow:0 0 14px rgba(255,255,255,0.15);
 }

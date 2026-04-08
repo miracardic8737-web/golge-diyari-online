@@ -1081,11 +1081,17 @@ socket.on('joined', (data) => {
   };
   players[myId] = myPlayer;
 
-  // Set camera immediately
-  const { tx, ty } = serverToTile(myPlayer.x, myPlayer.y);
-  const iso = tileToIso(tx, ty);
-  cam.x = cam.tx = iso.x - canvas.width / 2;
-  cam.y = cam.ty = iso.y - canvas.height / 2;
+  // Kamerayı hemen oyuncuya kilitle
+  function initCamera() {
+    const { tx, ty } = serverToTile(myPlayer.x, myPlayer.y);
+    const iso = tileToIso(tx, ty);
+    cam.x = cam.tx = iso.x - canvas.width / 2;
+    cam.y = cam.ty = iso.y - canvas.height / 2 - 30;
+  }
+  initCamera();
+  // Canvas henüz doğru boyutta olmayabilir, 100ms sonra tekrar ayarla
+  setTimeout(initCamera, 100);
+  setTimeout(initCamera, 500);
 
   // Start loading sequence
   startLoading();
@@ -1172,6 +1178,33 @@ socket.on('chat', (data) => {
   addChatMsg(data.name, data.msg);
 });
 
+socket.on('died', () => {
+  if (!myPlayer) return;
+  myPlayer.hp = 0;
+  updateHUD();
+  screenFlash('rgba(0,0,0,0.8)');
+  showNotif('☠ ÖLDÜNÜZ! 5 saniye sonra yeniden doğuyorsunuz...', '#ff4444');
+  // Ölüm ekranı göster
+  const deathEl = document.getElementById('deathScreen');
+  if (deathEl) deathEl.style.display = 'flex';
+});
+
+socket.on('respawned', (data) => {
+  if (!myPlayer) return;
+  myPlayer.hp = data.hp;
+  myPlayer.x = data.x;
+  myPlayer.y = data.y;
+  updateHUD();
+  showNotif('✨ Yeniden doğdunuz!', '#22c55e');
+  const deathEl = document.getElementById('deathScreen');
+  if (deathEl) deathEl.style.display = 'none';
+  // Kamerayı yeni konuma taşı
+  const { tx, ty } = serverToTile(myPlayer.x, myPlayer.y);
+  const iso = tileToIso(tx, ty);
+  cam.x = cam.tx = iso.x - canvas.width / 2;
+  cam.y = cam.ty = iso.y - canvas.height / 2 - 30;
+});
+
 // ── Loading Screen ────────────────────────────────────────────
 function startLoading() {
   const fill = document.getElementById('loadingFill');
@@ -1216,6 +1249,12 @@ if (startBtn) {
     }
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('gameScreen').style.display = 'block';
+    // Canvas'ı doğru boyuta getir (gameScreen görünür olduktan sonra)
+    setTimeout(() => {
+      resizeCanvas();
+      // Mobil kontrolleri göster
+      if (isMobile && mobileControls) mobileControls.style.display = 'block';
+    }, 50);
     socket.emit('join', { name, class: selectedClass });
     requestAnimationFrame(gameLoop);
   });

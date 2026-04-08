@@ -115,6 +115,23 @@ setInterval(() => {
           // Sadece oyuncu tam olarak join ettiyse hasar gönder
           if (nearest.joined) {
             io.to(nearest.id).emit('damaged', { dmg, hp: nearest.hp });
+            // Ölüm kontrolü
+            if (nearest.hp <= 0) {
+              io.to(nearest.id).emit('died');
+              // 5 saniye sonra respawn
+              setTimeout(() => {
+                if (players[nearest.id]) {
+                  players[nearest.id].hp = players[nearest.id].maxHp;
+                  players[nearest.id].x = 400 + Math.random() * 400;
+                  players[nearest.id].y = 400 + Math.random() * 400;
+                  io.to(nearest.id).emit('respawned', {
+                    hp: players[nearest.id].hp,
+                    x: players[nearest.id].x,
+                    y: players[nearest.id].y
+                  });
+                }
+              }, 5000);
+            }
           }
         }
       }
