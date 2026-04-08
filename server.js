@@ -65,12 +65,35 @@ setInterval(() => {
       continue;
     }
 
-    // Find nearest player
+    // Find nearest player — ama her canavar farklı oyuncuyu tercih etsin
+    // Önce mevcut hedefini kontrol et, yakınsa devam et
     let nearest = null, nearestDist = 300;
-    for (const pid in players) {
-      const p = players[pid];
-      const d = dist(m, p);
-      if (d < nearestDist) { nearest = p; nearestDist = d; }
+    const playerList = Object.values(players).filter(p => p.joined);
+
+    // Mevcut hedef hâlâ yakınsa ona devam et (hedef değiştirme sıklığını azalt)
+    if (m.target && players[m.target] && players[m.target].joined) {
+      const d = dist(m, players[m.target]);
+      if (d < 350) {
+        nearest = players[m.target];
+        nearestDist = d;
+      }
+    }
+
+    // Hedef yoksa veya çok uzaksa en yakın oyuncuyu bul
+    // Ama aynı oyuncuya çok fazla canavar yığılmasın diye
+    // her canavarın ID'sine göre farklı öncelik ver
+    if (!nearest) {
+      const mHash = parseInt(id.replace('m', '')) || 0;
+      // Oyuncuları karıştır (canavar ID'sine göre farklı sıra)
+      const shuffled = [...playerList].sort((a, b) => {
+        const hashA = (a.id.charCodeAt(0) + mHash) % 100;
+        const hashB = (b.id.charCodeAt(0) + mHash) % 100;
+        return hashA - hashB;
+      });
+      for (const p of shuffled) {
+        const d = dist(m, p);
+        if (d < nearestDist) { nearest = p; nearestDist = d; break; }
+      }
     }
 
     if (nearest) {

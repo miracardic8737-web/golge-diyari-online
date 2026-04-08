@@ -947,15 +947,17 @@ function gameLoop(timestamp) {
   handleMovement(dt);
   interpolatePlayers(dt);
 
-  // Camera smooth follow
+  // Camera smooth follow — karakterin gövde merkezi ekran ortasında olsun
   if (myPlayer) {
     const { tx, ty } = serverToTile(myPlayer.x, myPlayer.y);
     const iso = tileToIso(tx, ty);
+    // Karakterin ayakları tile merkezinde, gövdesi ~30px yukarıda
+    // Kamerayı biraz yukarı kaydır ki karakter tam ortada görünsün
     cam.tx = iso.x - canvas.width / 2;
-    cam.ty = iso.y - canvas.height / 2;
+    cam.ty = iso.y - canvas.height / 2 - 30;
   }
-  cam.x += (cam.tx - cam.x) * CAMERA_LERP;
-  cam.y += (cam.ty - cam.y) * CAMERA_LERP;
+  cam.x += (cam.tx - cam.x) * 0.12;
+  cam.y += (cam.ty - cam.y) * 0.12;
 
   // ── 1. Sky gradient background
   const skyGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
