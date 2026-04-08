@@ -539,6 +539,180 @@ document.querySelectorAll('.mob-skill').forEach((btn, i) => {
   btn.addEventListener('click', e => { e.preventDefault(); doAttack(); });
 });
 
+// Hasar sayısı (canvas üzerinde yüzen metin)
+function spawnDamageNumber(wx, wy, text, color) {
+  effects.push({
+    type: 'dmg_text',
+    wx, wy: wy - 20,
+    text, color: color || '#fff',
+    life: 1.0, maxLife: 1.0,
+    vy: -30
+  });
+}
+
+// ─── EFFECTS SYSTEM ──────────────────────────────────────────────────────────
+const effects = [];
+
+// Genişleyen halka efekti
+function spawnRing(wx, wy, color, maxR, duration) {
+  effects.push({ type: 'ring', wx, wy, color, r: 0, maxR, life: duration, maxLife: duration });
+}
+
+// Ok efekti (başlangıç → hedef yönünde uçar)
+function spawnArrow(wx, wy, angle, color, speed) {
+  effects.push({ type: 'arrow', wx, wy, angle, color, speed: speed || 400, life: 0.5, maxLife: 0.5 });
+}
+
+// Parçacık patlaması
+function spawnBurst(wx, wy, color, count) {
+  for (let i = 0; i < (count || 8); i++) {
+    const angle = (i / (count || 8)) * Math.PI * 2;
+    const speed = 60 + Math.random() * 80;
+    effects.push({
+      type: 'particle',
+      wx, wy,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      color,
+      r: 3 + Math.random() * 3,
+      life: 0.5 + Math.random() * 0.3,
+      maxLife: 0.8
+    });
+  }
+}
+
+// Büyü dalgası (dönen parçacıklar)
+function spawnMagicWave(wx, wy, color) {
+  for (let i = 0; i < 12; i++) {
+    const angle = (i / 12) * Math.PI * 2;
+    effects.push({
+      type: 'magic_orb',
+      wx, wy,
+      angle,
+      radius: 10,
+      maxRadius: 50,
+      color,
+      life: 0.6,
+      maxLife: 0.6
+    });
+  }
+}
+
+function updateAndDrawEffects(dt) {
+  for (let i = effects.length - 1; i >= 0; i--) {
+    const e = effects[i];
+    e.life -= dt;
+    if (e.life <= 0) { effects.splice(i, 1); continue; }
+
+    const alpha = Math.max(0, e.life / e.maxLife);
+    const s = serverToScreen(e.wx, e.wy);
+
+    if (e.type === 'ring') {
+      // Genişleyen halka
+      const progress = 1 - (e.life / e.maxLife);
+      e.r = e.maxR * progress;
+      ctx.save();
+      ctx.globalAlpha = alpha * 0.85;
+      ctx.strokeStyle = e.color;
+      ctx.lineWidth = 3 * alpha + 1;
+      ctx.shadowColor = e.color;
+      ctx.shadowBlur = 8;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, e.r, 0, Math.PI * 2);
+      ctx.stroke();
+      // İkinci iç halka
+      if (e.r > 10) {
+        ctx.globalAlpha = alpha * 0.4;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, e.r * 0.6, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+    } else if (e.type === 'arrow') {
+      // Uçan ok
+      const traveled = (1 - e.life / e.maxLife) * e.speed * e.maxLife;
+      const ax = e.wx + Math.cos(e.angle) * traveled / 10; // server coords
+      const ay = e.wy + Math.sin(e.angle) * traveled / 10;
+      const as = serverToScreen(ax, ay);
+      const tailX = as.x - Math.cos(e.angle) * 20;
+      const tailY = as.y - Math.sin(e.angle) * 20;
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      // Ok gövdesi
+      ctx.strokeStyle = '#ffd700';
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+      ctx.shadowColor = '#ffd700';
+      ctx.shadowBlur = 6;
+      ctx.beginPath();
+      ctx.moveTo(tailX, tailY);
+      ctx.lineTo(as.x, as.y);
+      ctx.stroke();
+      // Ok ucu
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.arc(as.x, as.y, 3, 0, Math.PI * 2);
+      ctx.fill();
+      // Kuyruk iz
+      ctx.strokeStyle = 'rgba(255,215,0,0.3)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(tailX - Math.cos(e.angle) * 15, tailY - Math.sin(e.angle) * 15);
+      ctx.lineTo(tailX, tailY);
+      ctx.stroke();
+      ctx.restore();
+
+    } else if (e.type === 'particle') {
+      // Parçacık
+      e.wx += e.vx * dt / 10;
+      e.wy += e.vy * dt / 10;
+      const ps = serverToScreen(e.wx, e.wy);
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = e.color;
+      ctx.shadowColor = e.color;
+      ctx.shadowBlur = 4;
+      ctx.beginPath();
+      ctx.arc(ps.x, ps.y, e.r * alpha, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+    } else if (e.type === 'magic_orb') {
+      // Dönen büyü küreleri
+      const progress = 1 - (e.life / e.maxLife);
+      e.radius = 10 + (e.maxRadius - 10) * progress;
+      e.angle += dt * 8;
+      const ox = e.wx + Math.cos(e.angle) * e.radius / 10;
+      const oy = e.wy + Math.sin(e.angle) * e.radius / 10;
+      const os = serverToScreen(ox, oy);
+      ctx.save();
+      ctx.globalAlpha = alpha * 0.9;
+      ctx.fillStyle = e.color;
+      ctx.shadowColor = e.color;
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.arc(os.x, os.y, 4 * alpha + 1, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+    } else if (e.type === 'dmg_text') {
+      e.wy += e.vy * dt / 10;
+      const ds = serverToScreen(e.wx, e.wy);
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.font = `bold ${14 + (1 - alpha) * 4}px Arial`;
+      ctx.textAlign = 'center';
+      ctx.fillStyle = e.color;
+      ctx.shadowColor = '#000';
+      ctx.shadowBlur = 4;
+      ctx.fillText(e.text, ds.x, ds.y);
+      ctx.restore();
+    }
+  }
+}
+
 // ─── ATTACK ───────────────────────────────────────────────────────────────────
 let lastAttackTime = 0;
 function doAttack() {
@@ -547,7 +721,37 @@ function doAttack() {
   if (now - lastAttackTime < 500) return;
   lastAttackTime = now;
   socket.emit('attack', {});
-  // Visual feedback - flash attack button
+
+  // Sınıfa göre saldırı efekti
+  const cls = myPlayer.class || 'warrior';
+  const wx = myPlayer.x, wy = myPlayer.y;
+
+  if (cls === 'warrior') {
+    // Kılıç darbesi: genişleyen kırmızı halka + parçacıklar
+    spawnRing(wx, wy, '#ef4444', 60, 0.4);
+    spawnRing(wx, wy, '#fca5a5', 40, 0.3);
+    spawnBurst(wx, wy, '#ef4444', 6);
+  } else if (cls === 'mage') {
+    // Büyü dalgası: dönen mor küreler + halka
+    spawnMagicWave(wx, wy, '#c084fc');
+    spawnRing(wx, wy, '#a855f7', 70, 0.5);
+    spawnBurst(wx, wy, '#c084fc', 10);
+  } else if (cls === 'archer') {
+    // 3 yönde ok fırlat
+    const angles = [-0.3, 0, 0.3];
+    angles.forEach(offset => {
+      const baseAngle = Math.atan2(joystickDy || 1, joystickDx || 0);
+      spawnArrow(wx, wy, baseAngle + offset, '#ffd700', 500);
+    });
+    spawnRing(wx, wy, '#fbbf24', 30, 0.25);
+  } else if (cls === 'rogue') {
+    // Hızlı çift bıçak: iki küçük halka + parçacıklar
+    spawnRing(wx, wy, '#94a3b8', 45, 0.25);
+    spawnRing(wx, wy, '#e2e8f0', 25, 0.2);
+    spawnBurst(wx, wy, '#94a3b8', 12);
+  }
+
+  // Buton feedback
   mobileAttackBtn.style.transform = 'scale(0.85)';
   setTimeout(() => { mobileAttackBtn.style.transform = ''; }, 150);
 }
@@ -730,7 +934,10 @@ function gameLoop(ts) {
     }
   }
 
-  // 7. HUD + minimap
+  // 7. Effects (saldırı animasyonları)
+  updateAndDrawEffects(dt);
+
+  // 8. HUD + minimap
   updateHUD();
   drawMinimap();
 }
@@ -788,7 +995,16 @@ socket.on('damaged', data => {
 });
 
 socket.on('hitResult', hits => {
-  // Could show damage numbers — skip for now
+  for (const hit of hits) {
+    const m = monsters[hit.id];
+    if (m) {
+      // Düşmana çarpma efekti
+      spawnRing(m.x, m.y, '#ff4444', 35, 0.3);
+      spawnBurst(m.x, m.y, '#ff8800', 5);
+      // Hasar sayısı
+      spawnDamageNumber(m.x, m.y, '-' + hit.dmg, '#ffd700');
+    }
+  }
 });
 
 socket.on('expGain', data => {
