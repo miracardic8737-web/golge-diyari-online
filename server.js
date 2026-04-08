@@ -89,7 +89,10 @@ setInterval(() => {
           const dmg = m.atk + Math.floor(Math.random() * 5);
           nearest.hp -= dmg;
           if (nearest.hp < 0) nearest.hp = 0;
-          io.to(nearest.id).emit('damaged', { dmg, hp: nearest.hp });
+          // Sadece oyuncu tam olarak join ettiyse hasar gönder
+          if (nearest.joined) {
+            io.to(nearest.id).emit('damaged', { dmg, hp: nearest.hp });
+          }
         }
       }
     } else {
@@ -121,7 +124,7 @@ io.on('connection', (socket) => {
   socket.on('join', (data) => {
     players[socket.id] = {
       id: socket.id,
-      name: data.name || 'Adventurer',
+      name: data.name || 'Maceracı',
       class: data.class || 'warrior',
       x: 400 + Math.random() * 400,
       y: 400 + Math.random() * 400,
@@ -131,8 +134,13 @@ io.on('connection', (socket) => {
       dir: 'down',
       attacking: false,
       lastAttack: 0,
+      joined: false,
     };
     socket.emit('joined', { player: players[socket.id], mapW: MAP_W, mapH: MAP_H });
+    // 3 saniye sonra hasar almaya başlar (yükleme ekranı kapanır)
+    setTimeout(() => {
+      if (players[socket.id]) players[socket.id].joined = true;
+    }, 3000);
   });
 
   socket.on('move', (data) => {

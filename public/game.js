@@ -27,10 +27,16 @@ const damageNumbers = [];
 
 // ─── RENDERER ─────────────────────────────────────────────────────────────────
 const container = document.getElementById('threeContainer');
-const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+const isMobileDevice = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || window.innerWidth < 768;
+
+const renderer = new THREE.WebGLRenderer({
+  antialias: !isMobileDevice, // mobilde antialias kapat
+  powerPreference: 'high-performance'
+});
+// Mobilde pixelRatio 1'de tut, masaüstünde max 2
+renderer.setPixelRatio(isMobileDevice ? 1 : Math.min(window.devicePixelRatio, 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.shadowMap.enabled = true;
+renderer.shadowMap.enabled = !isMobileDevice; // mobilde gölge kapat
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.1;
@@ -39,7 +45,8 @@ container.appendChild(renderer.domElement);
 // ─── SCENE ────────────────────────────────────────────────────────────────────
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x0a0814);
-scene.fog = new THREE.FogExp2(0x0d0a1e, 0.008);
+// Mobilde fog daha yoğun yap → daha az nesne render edilir
+scene.fog = new THREE.FogExp2(0x0d0a1e, isMobileDevice ? 0.018 : 0.008);
 
 // ─── CAMERA ───────────────────────────────────────────────────────────────────
 const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 500);
@@ -56,8 +63,8 @@ window.addEventListener('resize', () => {
 // Moonlight
 const moonLight = new THREE.DirectionalLight(0x8899cc, 1.2);
 moonLight.position.set(60, 100, 40);
-moonLight.castShadow = true;
-moonLight.shadow.mapSize.set(4096, 4096);
+moonLight.castShadow = !isMobileDevice;
+moonLight.shadow.mapSize.set(isMobileDevice ? 512 : 4096, isMobileDevice ? 512 : 4096);
 moonLight.shadow.camera.near = 1;
 moonLight.shadow.camera.far = 500;
 moonLight.shadow.camera.left = -180;
@@ -137,7 +144,7 @@ function randPos(margin = 20) {
 }
 
 // ─── TREES (250) ──────────────────────────────────────────────────────────────
-for (let i = 0; i < 250; i++) {
+for (let i = 0; i < (isMobileDevice ? 80 : 250); i++) {
   const p = randPos(5);
   const ty = heightAt(p.x, p.z);
   const trunkH = rng(1.8, 4.0);
@@ -164,7 +171,7 @@ for (let i = 0; i < 250; i++) {
 }
 
 // ─── ROCKS (100) ──────────────────────────────────────────────────────────────
-for (let i = 0; i < 100; i++) {
+for (let i = 0; i < (isMobileDevice ? 30 : 100); i++) {
   const p = randPos(5);
   const ty = heightAt(p.x, p.z);
   const s = rng(0.3, 1.6);
@@ -185,7 +192,7 @@ for (let i = 0; i < 100; i++) {
 }
 
 // ─── STONE PILLARS (30) ───────────────────────────────────────────────────────
-for (let i = 0; i < 30; i++) {
+for (let i = 0; i < (isMobileDevice ? 8 : 30); i++) {
   const p = randPos(10);
   const ty = heightAt(p.x, p.z);
   const h = rng(4, 10);
@@ -208,7 +215,7 @@ for (let i = 0; i < 30; i++) {
 
 // ─── TORCHES (40) ─────────────────────────────────────────────────────────────
 const torchObjects = [];
-for (let i = 0; i < 40; i++) {
+for (let i = 0; i < (isMobileDevice ? 15 : 40); i++) {
   const p = randPos(8);
   const ty = heightAt(p.x, p.z);
   const stick = new THREE.Mesh(
@@ -233,7 +240,7 @@ for (let i = 0; i < 40; i++) {
 // ─── MAGICAL CRYSTALS (20) ────────────────────────────────────────────────────
 const crystalObjects = [];
 const crystalColors = [0x4488ff, 0x8844ff, 0x44ffcc, 0xaa44ff, 0x2266ff];
-for (let i = 0; i < 20; i++) {
+for (let i = 0; i < (isMobileDevice ? 6 : 20); i++) {
   const p = randPos(12);
   const ty = heightAt(p.x, p.z);
   const col = crystalColors[i % crystalColors.length];
@@ -255,7 +262,8 @@ for (let i = 0; i < 20; i++) {
 
 // ─── GRASS PATCHES ────────────────────────────────────────────────────────────
 const grassMat = new THREE.MeshBasicMaterial({ color: 0x0d2010, side: THREE.DoubleSide, transparent: true, opacity: 0.7 });
-for (let i = 0; i < 300; i++) {
+if (!isMobileDevice) {
+  for (let i = 0; i < 300; i++) {
   const p = randPos(3);
   const ty = heightAt(p.x, p.z);
   for (let g = 0; g < 4; g++) {
@@ -264,6 +272,7 @@ for (let i = 0; i < 300; i++) {
     blade.rotation.y = rng(0, Math.PI);
     scene.add(blade);
   }
+}
 }
 
 // ─── LABEL / HP BAR SPRITES ───────────────────────────────────────────────────
@@ -1145,6 +1154,9 @@ socket.on('state', (data) => {
 });
 
 socket.on('damaged', (data) => {
+  // Yükleme ekranı hâlâ görünüyorsa hasarı yoksay
+  const overlay = document.getElementById('loadingOverlay');
+  if (!myId || (overlay && overlay.style.display !== 'none' && overlay.style.opacity !== '0')) return;
   myData.hp = data.hp;
   updateHUD();
   if (myMesh) spawnDamageNumber(data.dmg, myMesh.position.x, myMesh.position.z, true);
